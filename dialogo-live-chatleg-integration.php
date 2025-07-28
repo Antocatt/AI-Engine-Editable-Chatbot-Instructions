@@ -63,6 +63,10 @@ class DialogoLiveChatLegIntegration {
         
         // Filter AI Engine chatbot prompts
         add_filter('mwai_chatbot_params', array($this, 'inject_user_prompt'), 10, 2);
+        
+        // Activation and deactivation hooks
+        register_activation_hook(__FILE__, array($this, 'activate_plugin'));
+        register_deactivation_hook(__FILE__, array($this, 'deactivate_plugin'));
     }
     
     /**
@@ -267,11 +271,26 @@ class DialogoLiveChatLegIntegration {
         $prompt_string = sanitize_textarea_field($_POST['prompt_string']);
         $field_of_law = sanitize_text_field($_POST['field_of_law']);
         
-        // Get character limit from settings
-        $max_chars = get_option('dialogo_max_chars', 1000);
-        if (strlen($prompt_string) > $max_chars) {
-            wp_send_json_error('Prompt exceeds character limit');
+        // Validate field of law
+        $valid_areas = array('penale', 'civile', 'tributario', 'lavoro', 'altro', '');
+        if (!in_array($field_of_law, $valid_areas)) {
+            wp_send_json_error('Invalid legal area');
             return;
+        }
+        
+        // Get character limit from settings
+        $max_chars = intval(get_option('dialogo_max_chars', 1000));
+        if (strlen($prompt_string) > $max_chars) {
+            wp_send_json_error('Il prompt supera il limite di caratteri consentiti');
+            return;
+        }
+        
+        // Optional: Content moderation if enabled
+        if (get_option('dialogo_moderation_enabled', false)) {
+            if ($this->contains_inappropriate_content($prompt_string)) {
+                wp_send_json_error('Il contenuto contiene termini non appropriati');
+                return;
+            }
         }
         
         // Save current prompt to history before updating
@@ -299,6 +318,26 @@ class DialogoLiveChatLegIntegration {
         update_user_meta($user_id, 'dialogo_field_of_law', $field_of_law);
         
         wp_send_json_success('Prompt salvato con successo');
+    }
+    
+    /**
+     * Simple content moderation (can be enhanced)
+     */
+    private function contains_inappropriate_content($text) {
+        // Basic word filter - can be extended based on requirements
+        $blocked_words = array(
+            // Add inappropriate words here if moderation is needed
+            // This is a basic implementation
+        );
+        
+        $text_lower = strtolower($text);
+        foreach ($blocked_words as $word) {
+            if (strpos($text_lower, strtolower($word)) !== false) {
+                return true;
+            }
+        }
+        
+        return false;
     }
     
     /**
@@ -894,6 +933,51 @@ class DialogoLiveChatLegIntegration {
         }
         </style>
         <?php
+    }
+    
+    /**
+     * Plugin activation
+     */
+    public function activate_plugin() {
+        // Add rewrite rules
+        $this->add_rewrite_rules();
+        
+        // Flush rewrite rules
+        flush_rewrite_rules();
+        
+        // Set default options
+        if (get_option('dialogo_hardcoded_prompt') === false) {
+            update_option('dialogo_hardcoded_prompt', 'Sei un assistente legale specializzato.');
+        }
+        if (get_option('dialogo_max_chars') === false) {
+            update_option('dialogo_max_chars', 1000);
+        }
+        if (get_option('dialogo_show_hardcoded_prompt') === false) {
+            update_option('dialogo_show_hardcoded_prompt', true);
+        }
+        
+        // Set preset defaults
+        $presets = array(
+            'dialogo_preset_penale' => 'Specializzati in diritto penale. Fornisci consulenza su reati, procedimenti penali e difesa legale.',
+            'dialogo_preset_civile' => 'Specializzati in diritto civile. Aiuta con contratti, proprietà, responsabilità civile e controversie private.',
+            'dialogo_preset_tributario' => 'Specializzati in diritto tributario. Consulenza su tasse, imposte, detrazioni e controversie fiscali.',
+            'dialogo_preset_lavoro' => 'Specializzati in diritto del lavoro. Assistenza su contratti di lavoro, licenziamenti, diritti dei lavoratori.',
+            'dialogo_preset_generale' => 'Assistente legale generale. Fornisci consulenza di base su varie aree del diritto italiano.'
+        );
+        
+        foreach ($presets as $option_name => $default_value) {
+            if (get_option($option_name) === false) {
+                update_option($option_name, $default_value);
+            }
+        }
+    }
+    
+    /**
+     * Plugin deactivation
+     */
+    public function deactivate_plugin() {
+        // Flush rewrite rules to remove custom rules
+        flush_rewrite_rules();
     }
 }
 
