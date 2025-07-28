@@ -1,30 +1,110 @@
-# AI Engine Editable Chatbot Instructions
-A front-end interface to display and edit chatbot instructions.
+# Dialogo.Live - ChatLeg Integration
 
-><em>This is AI-coded by Claude AI, and was created for a specific use case to allow refinement of chatbot instructions by selected users in a development and evaluation environment.</em>
->
-><em>Not recommended for production sites.</em>
->
->Source: https://claude.ai/public/artifacts/3ffd04c9-36a6-4710-9f67-8113a823542a
+Un plugin WordPress che permette a ogni utente registrato di personalizzare i prompt del proprio chatbot AI con controlli admin e conformità GDPR.
 
-This plugin simply creates a shortcode where you can display the instructions for the identified chatbot. Has options to edit the instructions and save them back to the database. By default, only Admins can edit the instructions. However, you can set an option for the minumum role needed to enable editing for other users.
+## Caratteristiche Principali
 
-### Usage
+### Dettagli Plugin
+- **Nome**: Dialogo.Live - ChatLeg Integration  
+- **Descrizione**: Permette agli utenti di personalizzare i prompt del chatbot AI con controlli admin e conformità GDPR
+- **Branding**: Include "Powered by Dialogo.Live" con link a https://chatleg.pro/dialogo
 
-For simple display of the instructions use the shortcode this way, adding the chatbot ID.
+### Funzionalità Frontend
+- **Route**: `/personalizza-assistente` o shortcode `[dialogo_prompt_customizer]`
+- **Saluto utente**: "Ciao {username}, queste sono le tue istruzioni custom per il modello Omnia."
+- **Overlay GDPR/ToS** alla prima visita
+- **Dropdown area legale** (Penale, Civile, Tributario, Lavoro, Altro)
+- **Pulsanti preset** per template legali comuni
+- **Contatore caratteri** per l'input utente
+- **Funzionalità** Salva/Reset/Cronologia
+- **Rendering chatbot live** con prompt salvati
 
-<code>[chatbot_instructions name="chatbot-id"]</code>
+### Backend Admin
+- **Pagina impostazioni**: "Dialogo.Live Settings"
+- Configurazione prompt hardcoded (visibili/invisibili agli utenti)
+- Impostazione limiti caratteri per input utente
+- Abilitazione/disabilitazione filtro moderazione
+- Attivazione/disattivazione varie funzionalità
 
-Enable editing this way, by default it only allows admins to edit.
+### Requisiti Tecnici
+- Compatibile con Elementor e AI Engine Pro
+- Utilizza vanilla JavaScript moderno (ES6+), senza jQuery
+- Codice semplice e pulito con commenti chiari
+- Design responsive
+- Sicurezza con WordPress nonces
+- Salvataggio dati in user_meta e opzioni WordPress
 
-<code>[chatbot_instructions name="chatbot-id" editable="1"]</code>
+### Archiviazione Dati
+- **User meta**: prompt_string, prompt_history, field_of_law, consent_accepted
+- **Opzioni**: hardcoded_prompt, max_chars, show_hardcoded_prompt, ecc.
 
-Allow editing by lower roles. Set the minumum role and all above it can edit. Does not support custom user roles, accepts only organic WP user roles all the way down to Subscriber. Guests can never edit.
+### Integrazione
+- Funziona con shortcode `[mwai_chatbot]` di AI Engine Pro
+- Iniezione dinamica prompt: hardcoded_prompt + user_prompt
+- Rendering context-aware basato sulle selezioni utente
 
-<code>[chatbot_instructions name="chatbot-id" editable="1" min_role="contributor"]</code>
+## Utilizzo
 
-### Debugging
+### Shortcode Base
+Per visualizzare l'interfaccia di personalizzazione:
+```
+[dialogo_prompt_customizer]
+```
 
-This shortcode will output to Admins only and will display the information from the mwai_chatbots field from the database. Formatted for easy reading.
+### Route Personalizzata
+Gli utenti possono accedere direttamente tramite:
+```
+https://tuosito.com/personalizza-assistente
+```
 
-<code>[debug_mwai_chatbots]</code>
+### Impostazioni Admin
+1. Vai su **Settings > Dialogo.Live Settings**
+2. Configura il prompt hardcoded base
+3. Imposta il limite massimo di caratteri
+4. Personalizza i preset per le diverse aree legali
+5. Abilita/disabilita le funzionalità desiderate
+
+## Funzionalità Dettagliate
+
+### GDPR e Privacy
+- Overlay di consenso obbligatorio alla prima visita
+- Salvataggio timestamp del consenso
+- Gestione completa dei dati utente secondo GDPR
+
+### Preset Legali
+- **Penale**: Template per diritto penale
+- **Civile**: Template per diritto civile  
+- **Tributario**: Template per diritto tributario
+- **Lavoro**: Template per diritto del lavoro
+- **Generale**: Template assistente legale generale
+
+### Cronologia
+- Salvataggio automatico delle modifiche
+- Visualizzazione cronologia con timestamp
+- Ripristino prompt precedenti
+- Massimo 10 voci nella cronologia
+
+### Sicurezza
+- Nonces WordPress per tutte le operazioni AJAX
+- Sanitizzazione completa degli input
+- Controllo permessi utente
+- Validazione lato client e server
+
+## Sviluppo
+
+Il codice è progettato per essere semplice da comprendere e modificare anche da sviluppatori con conoscenze base di HTML/WordPress.
+
+### Struttura File
+- `dialogo-live-chatleg-integration.php` - File principale del plugin
+- `dialogo-customizer.js` - JavaScript frontend (vanilla ES6+)
+
+### Commenti Estesi
+Ogni sezione del codice include commenti dettagliati che spiegano:
+- Funzionalità della sezione
+- Parametri utilizzati
+- Integrazione con WordPress
+- Note di sicurezza
+
+---
+
+**Powered by [Dialogo.Live](https://chatleg.pro/dialogo)**
